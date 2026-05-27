@@ -1,0 +1,36 @@
+def run_simulation(market, agents, steps):
+
+    previous_price = market.current_price
+
+    for step in range(steps):
+
+        actions = []
+
+        price_movement = 0
+
+        if step > 0:
+            price_movement = (
+                market.current_price - previous_price
+            ) / previous_price
+
+        previous_price = market.current_price
+
+        for agent in agents:
+
+            act, vol = agent.action(
+                market.current_price,
+                price_movement
+            )
+
+            actions.append((act, vol))
+
+            agent.update_values(
+                previous_price,
+                market.current_price,
+                act,
+                vol
+            )
+
+        market.agents_act(actions)
+
+        market.pricing()

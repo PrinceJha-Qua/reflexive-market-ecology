@@ -1,5 +1,5 @@
 import random
-
+import math
 class Market:
     def __init__(self,current_price, sensitivity):
         self.current_price = current_price
@@ -37,7 +37,7 @@ class Market:
         
         returns = imbalance * self.sensitivity
         if (returns < 1) :
-            returns = + returns * returns 
+            returns = math.copysign(returns**2, returns)
         elif ( returns > 1):
             returns = 1 + returns**1/3
         # -----> return is the percentage change in price....
