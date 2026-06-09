@@ -10,6 +10,7 @@ class Agent:
         self.pNl = PnL_memory if PnL_memory is not None else [0,]# ------> floating point and pNl percentage 
         self.tendency_val = tendency_value
         self.agent_history = []
+        self.wealth = 0
 
 
     def action(self, current_price, price_movement):
@@ -23,6 +24,8 @@ class Agent:
 
         act = random.choices([1,-1,0], weights=[buy_prob, sell_prob, hold_prob])[0]
         vol = self.volume(act, current_price)
+
+        self.wealth = self.cash + self.holdings * current_price
         return(act, vol)
 
 
@@ -53,9 +56,8 @@ class Agent:
         adjusted_tendency = math.tanh(adjusted_tendency)
         self.tendency_val = adjusted_tendency
     
-    def update_values(self, previous_price, current_price, act, vol ):
-        updated_pnl = (previous_price - current_price ) / previous_price 
-        self.pNl.append(updated_pnl)
+    def update_values(self, current_price, act, vol ):
+        
         if act == -1:
             self.holdings -= vol
             self.cash += vol * current_price
@@ -64,6 +66,13 @@ class Agent:
             self.cash -= vol * current_price
             self.cash = max(0,self.cash)
             self.holdings +=  vol
+
+        updated_wealth = current_price * self.holdings + self.cash
+        updated_pnl = (self.wealth - updated_wealth) / self.wealth
+        self.wealth = updated_wealth
+        self.pNl.append(updated_pnl)
+        
+
     def cash_effect(self, current_price):
         possible_buys = math.tanh(math.tanh(self.cash// current_price))
         pass
@@ -88,17 +97,15 @@ class Agent:
 
 class MomentumTrader(Agent):
 
+    def __init__(self, identity, cash, holdings, risk_tolerance, PnL_memory=None, tendency_value=0):
+        super().__init__(identity, cash, holdings, risk_tolerance, PnL_memory, tendency_value)
+        self.lookback = 0
 
     def tendency(self, price_movement):
         noise = random.uniform(-0.2,0.2)
-
         pnl_adjusted = 0
-        if len(self.pNl) < 7 : 
-            l = 1
-        elif len(self.pNl) < 15:
-            l = 3
-        else:
-            l = 5 + random.choice([-1,-2,2,4,6]) # to create some randomness amonng Momentumtraders too
+        l = self.lookback
+         # to create some randomness amonng Momentumtraders too
         for i in range(1,l+1):
             pnl_adjusted += self.pNl[-i]
         pnl_adjusted = math.tanh(pnl_adjusted) # ----between 0 and 1 
@@ -108,6 +115,14 @@ class MomentumTrader(Agent):
 
         self.tendency_val = adjusted_tendency
 
+    def lookback(self):    # Call once at the start in the notebook
+        
+        if len(self.pNl) < 7 : 
+            self.lookback = 1
+        elif len(self.pNl) < 15:
+            self.lookback = 3
+        else:
+            self.lookback = 5 + random.choice([-1,-2,2,4,6])
 
 
 
