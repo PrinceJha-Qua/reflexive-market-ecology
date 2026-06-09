@@ -16,16 +16,16 @@ class Market:
             elif act == -1:
                 self.sell_pressure += vol
 
-    def pricing(self, tick):
+    def pricing(self, tick, fear_multiplier = 1.3):
         if self.sell_pressure + self.buy_pressure == 0 :
             imbalance = 0 
         
         else : 
             imbalance = (self.buy_pressure - self.sell_pressure) / (self.buy_pressure + self.sell_pressure)  
         
-        # Comment this out for experiments
+        # Comment this out for experiments.....
         if imbalance < 0 and imbalance >= -0.67 :
-            imbalance *= 1.3 # ---------> to remove demand assymetry : Fear propogates more.. then optimism
+            imbalance *= fear_multiplier # ---------> to remove demand symmetry : Fear propogates more.. then greed and optimism
              
         # to keep imbalance bounded where lets say..
         ''' there's 5 buy offer and 10 sell ----> imbalance = 5
@@ -40,13 +40,14 @@ class Market:
         '''
 
         returns = imbalance * self.sensitivity * math.tanh(math.log(1 + self.sell_pressure + self.buy_pressure))
+        
         if (returns < 1) :
             returns = math.copysign(returns**2, returns)
         elif ( returns > 1):
-            returns = 1 + returns**1/3
+            returns = 1 + returns**(1/3)
         # -----> return is the percentage change in price....
         # return = ( new_price - current_price ) / current_price
-        price = max(0, returns * self.current_price + self.current_price)
+        price = max(0, returns * self.current_price + self.current_price) # Prices can go negative like the infamous oil Futures Contract's dip to negative during Covid Pandemic
         
         self.price_history.append({
             "tick": tick,
