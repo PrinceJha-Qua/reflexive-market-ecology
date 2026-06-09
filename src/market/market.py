@@ -16,7 +16,7 @@ class Market:
             elif act == -1:
                 self.sell_pressure += vol
 
-    def pricing(self):
+    def pricing(self, tick):
         if self.sell_pressure + self.buy_pressure == 0 :
             imbalance = 0 
         
@@ -34,7 +34,7 @@ class Market:
         Another silent assumption here is that somebody has to trade.. both sell and buy pressure should not become 0
         cause then imbalnce = 0/0.. so we must create an edge case for a silent market.
         '''
-        
+
         returns = imbalance * self.sensitivity
         if (returns < 1) :
             returns = math.copysign(returns**2, returns)
@@ -44,7 +44,15 @@ class Market:
         # return = ( new_price - current_price ) / current_price
         price = max(0, returns * self.current_price + self.current_price)
         
-        self.price_history.append([price, self.buy_pressure, self.sell_pressure, imbalance, returns])
+        self.price_history.append({
+            "tick": tick,
+            "price": price,
+            "buy_pressure": self.buy_pressure,
+            "sell_pressure": self.sell_pressure,
+            "imbalance": imbalance,
+            "returns": returns
+        })
+
         self.sell_pressure = 0
         self.buy_pressure = 0
         self.current_price = price

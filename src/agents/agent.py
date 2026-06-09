@@ -9,6 +9,7 @@ class Agent:
         self.risk_tolerance = risk_tolerance # -----> Between 0 and 1 ----> float
         self.pNl = PnL_memory if PnL_memory is not None else [0,]# ------> floating point and pNl percentage 
         self.tendency_val = tendency_value
+        self.agent_history = []
 
 
     def action(self, current_price, price_movement):
@@ -67,6 +68,22 @@ class Agent:
         possible_buys = math.tanh(math.tanh(self.cash// current_price))
         pass
         # on hold.. cann't figure out what to do about money and accounting..
+    
+    def log_tick(self, tick, price, act, vol):
+        wealth = self.cash + self.holdings * price
+
+        self.agent_history.append({
+            "tick": tick,
+            "agent_id": self.id,
+            "price": price,
+            "wealth": wealth,
+            "cash": self.cash,
+            "holdings": self.holdings,
+            "tendency": self.tendency_val,
+            "action": act,
+            "volume": vol,
+            "pnl": self.pNl[-1]
+        })
 
 
 class MomentumTrader(Agent):
