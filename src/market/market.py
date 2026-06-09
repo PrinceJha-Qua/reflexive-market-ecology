@@ -23,7 +23,11 @@ class Market:
         else : 
             imbalance = (self.buy_pressure - self.sell_pressure) / (self.buy_pressure + self.sell_pressure)  
         
-        # to keep imbalance bounded where lets say....
+        # Comment this out for experiments
+        if imbalance < 0 and imbalance >= -0.67 :
+            imbalance *= 1.3 # ---------> to remove demand assymetry : Fear propogates more.. then optimism
+             
+        # to keep imbalance bounded where lets say..
         ''' there's 5 buy offer and 10 sell ----> imbalance = 5
             there's 5000 buy offer and 5005 sell ----> imbalance = 5
             but both are not same.. 
@@ -35,7 +39,7 @@ class Market:
         cause then imbalnce = 0/0.. so we must create an edge case for a silent market.
         '''
 
-        returns = imbalance * self.sensitivity
+        returns = imbalance * self.sensitivity * math.tanh(math.log(1 + self.sell_pressure + self.buy_pressure))
         if (returns < 1) :
             returns = math.copysign(returns**2, returns)
         elif ( returns > 1):

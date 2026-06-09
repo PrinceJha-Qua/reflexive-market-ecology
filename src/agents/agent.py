@@ -68,7 +68,7 @@ class Agent:
             self.holdings +=  vol
 
         updated_wealth = current_price * self.holdings + self.cash
-        updated_pnl = (self.wealth - updated_wealth) / self.wealth
+        updated_pnl = (updated_wealth - self.wealth ) / self.wealth
         self.wealth = updated_wealth
         self.pNl.append(updated_pnl)
         
@@ -123,8 +123,6 @@ class MomentumTrader(Agent):
             self.lookback = 3
         else:
             self.lookback = 5 + random.choice([-1,-2,2,4,6])
-
-
 
 
 
