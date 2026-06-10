@@ -9,19 +9,30 @@ class Market:
        
         self.buy_pressure = 0
         self.sell_pressure = 0 
-        
+        self.buyer = 0
+        self.seller = 0
+        self.holder = 0
 
     def agents_act(self, action):
+        
         for act, vol in action:
             if act == 1:
+                
                 self.buy_pressure += vol
+                self.buyer += 1
+
             elif act == -1:
+                
                 self.sell_pressure += vol
+                self.seller += 1
+
+            else :
+                self.holder += 1
 
     def pricing(self, tick, fear_multiplier = 1.3):
+        
         if self.sell_pressure + self.buy_pressure == 0 :
             imbalance = 0 
-        
         else : 
             imbalance = (self.buy_pressure - self.sell_pressure) / (self.buy_pressure + self.sell_pressure)  
         
@@ -57,6 +68,9 @@ class Market:
             "buy_pressure": self.buy_pressure,
             "sell_pressure": self.sell_pressure,
             "total_volume": self.sell_pressure + self.buy_pressure,
+            "seller": self.seller,
+            "buyer": self.buyer,
+            "holder": self.holder,
             "imbalance": imbalance,
             "returns": returns
         })
@@ -64,4 +78,7 @@ class Market:
         self.sell_pressure = 0
         self.buy_pressure = 0
         self.current_price = price
+        self.buyer = 0
+        self.seller = 0
+        self.holder = 0
         return price

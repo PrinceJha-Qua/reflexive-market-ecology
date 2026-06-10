@@ -16,7 +16,7 @@ class Agent:
 
     def action(self, current_price, price_movement):
         
-        self.update_tendency(price_movement)
+        self.compute_tendency(price_movement)
 
         action = self.choose_action()
 
@@ -55,7 +55,7 @@ class Agent:
             return sell_volume
         return 0
 
-    def tendency(self, price_movement):
+    def compute_tendency(self, price_movement):
         noise = random.uniform(-0.2,0.2) 
         
         pNl_adjusted = 0.4 * math.tanh(self.pNl[-1]) # Capping pNl so it doesn't over influence and only letting it see the last pNl
@@ -67,22 +67,23 @@ class Agent:
         self.tendency_val = adjusted_tendency
     
     def update_values(self, current_price, act, vol ):
-        
+
         if act == -1:
+            vol = min(vol, self.holdings)
             self.holdings -= vol
             self.cash += vol * current_price
             
         elif act == 1 : # else has the same effect but always make distinction. Don't treat Hold as Sell = 0 and Buy = 0. 
+            max_affordable = int(self.cash // current_price)
+            vol = min(vol,max_affordable)
+            
             self.cash -= vol * current_price
             self.cash = max(0,self.cash)
             self.holdings +=  vol
         
         self.wealth = self.cash + self.holdings * current_price
 
-    def update_wealth(self, updated_price, current_price):
-        max_affordable = int(self.cash // current_price)
-
-        vol = min(vol,max_affordable)
+    def update_wealth(self, updated_price):
 
         updated_wealth = updated_price * self.holdings + self.cash
         if self.wealth <= 0: # Always remember such cases when dividing
@@ -117,12 +118,14 @@ class Agent:
 
 class MomentumTrader(Agent):
 
-    def __init__(self, identity, cash, holdings, risk_tolerance, PnL_memory=None, tendency_value=0):
+    def __init__(self, identity, cash, holdings, risk_tolerance, PnL_memory=None, trend_strength = 1.7, tendency_value=0):
         super().__init__(identity, cash, holdings, risk_tolerance, PnL_memory, tendency_value)
         self.lookback = random.choice([3,5,7,10])
         self.type = "momentum"
+        self.trend_strength = trend_strength
+        
 
-    def tendency(self, price_movement):
+    def compute_tendency(self, price_movement):
         noise = random.uniform(-0.2,0.2)
         pnl_adjusted = 0
         l = min(self.lookback, len(self.pNl))
@@ -131,21 +134,24 @@ class MomentumTrader(Agent):
             pnl_adjusted += self.pNl[-i]
         pnl_adjusted = math.tanh(pnl_adjusted) # ----between 0 and 1 
 
-        new_tendency = 1.7 * price_movement + pnl_adjusted + noise
-        adjusted_tendency = math.tanh(new_tendency) 
+        new_tendency = self.trend_strength * price_movement + pnl_adjusted + noise
+        adjusted_tendency = math.tanh(new_tendency) * self.risk_tolerance
 
         self.tendency_val = adjusted_tendency
 
 
+class ContrarianTrader(Agent):
+    def __init__(self, identity, cash, holdings, risk_tolerance, PnL_memory=None, reversion_strength = 1.3, tendency_value=0):
+        super().__init__(identity, cash, holdings, risk_tolerance, PnL_memory, tendency_value)
+        self.type = "contrarian"
+        self.reversion_strength = reversion_strength
 
-    # Archived Functions : 
-    '''  
-    def lookback_val(self):    # Call once at the start in the notebook
+    def compute_tendency(self, price_movement):
+        noise = random.uniform(-0.2,0.2)
+        new_tendency = -1 * self.reversion_strength * price_movement + 0.2 * math.tanh(self.pNl[-1]) + noise # past does always influence a lil in general. With a conntrartian agent, a lil lesser I guess
+        adjusted_tendency = math.tanh(new_tendency) * self.risk_tolerance
+        self.tendency_val = adjusted_tendency
+
+    
+
         
-        if len(self.pNl) < 7 : 
-            self.lookback = 1
-        elif len(self.pNl) < 15:
-            self.lookback = 3
-        else:
-            self.lookback = 5 + random.choice([-1,-2,2,4,6])
-    '''
