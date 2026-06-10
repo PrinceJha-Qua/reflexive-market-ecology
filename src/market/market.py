@@ -4,7 +4,9 @@ class Market:
     def __init__(self,current_price, sensitivity):
         self.current_price = current_price
         self.sensitivity = sensitivity
+       
         self.price_history = [] # ----> {price,buy_pressure,sell_pressure,imbalance,returns}
+       
         self.buy_pressure = 0
         self.sell_pressure = 0 
         
@@ -54,6 +56,7 @@ class Market:
             "price": price,
             "buy_pressure": self.buy_pressure,
             "sell_pressure": self.sell_pressure,
+            "total_volume": self.sell_pressure + self.buy_pressure,
             "imbalance": imbalance,
             "returns": returns
         })

@@ -15,18 +15,27 @@ class Agent:
 
 
     def action(self, current_price, price_movement):
-        self.tendency(price_movement) # calling this to make sure no stale value
+        
+        self.update_tendency(price_movement)
 
-        buy_prob  = max(0, self.tendency_val)
-        sell_prob = max(0, -self.tendency_val)
-        hold_prob = 1 - buy_prob - sell_prob 
+        action = self.choose_action()
 
-        hold_prob = max(0, hold_prob)
+        volume = self.volume(
+            action,
+            current_price
+        )
 
-        act = random.choices([1,-1,0], weights=[buy_prob, sell_prob, hold_prob])[0]
-        vol = self.volume(act, current_price)
+        return action, volume
 
-        return(act, vol)
+    def choose_action(self):
+
+        buy_prob = max(0,self.tendency_val)
+
+        sell_prob = max(0,-self.tendency_val)
+
+        hold_prob = max(0,1 - buy_prob - sell_prob)
+
+        return random.choices([1,-1,0], weights=[buy_prob,sell_prob,hold_prob])[0]
 
 
     def volume(self, act, current_price):
@@ -37,23 +46,24 @@ class Agent:
         trade_fraction = conviction * self.risk_tolerance + noise 
         trade_fraction = abs(math.tanh(trade_fraction))
 
-        budget = self.cash * trade_fraction
-        buy_vol = budget // current_price
-        sell_vol = int(trade_fraction * self.holdings)
+        buy_volume = int( (self.cash * trade_fraction)// current_price)
+        sell_volume = int(trade_fraction * self.holdings)
 
         if act == 1:
-            return buy_vol
+            return buy_volume
         elif act == -1:
-            return sell_vol
-        else:
-            return 0
+            return sell_volume
+        return 0
 
     def tendency(self, price_movement):
         noise = random.uniform(-0.2,0.2) 
+        
         pNl_adjusted = 0.4 * math.tanh(self.pNl[-1]) # Capping pNl so it doesn't over influence and only letting it see the last pNl
         tendency = price_movement + pNl_adjusted + noise
+        
         adjusted_tendency = tendency * self.risk_tolerance
         adjusted_tendency = math.tanh(adjusted_tendency)
+        
         self.tendency_val = adjusted_tendency
     
     def update_values(self, current_price, act, vol ):
@@ -69,7 +79,11 @@ class Agent:
         
         self.wealth = self.cash + self.holdings * current_price
 
-    def update_wealth(self, updated_price):
+    def update_wealth(self, updated_price, current_price):
+        max_affordable = int(self.cash // current_price)
+
+        vol = min(vol,max_affordable)
+
         updated_wealth = updated_price * self.holdings + self.cash
         if self.wealth <= 0: # Always remember such cases when dividing
             updated_pnl = 0
@@ -85,13 +99,13 @@ class Agent:
         # on hold.. cann't figure out what to do about money and accounting..
     
     def log_tick(self, tick, price, act, vol):
-        wealth = self.cash + self.holdings * price
 
         self.agent_history.append({
             "tick": tick,
             "agent_id": self.id,
+            "type": self.type,
             "price": price,
-            "wealth": wealth,
+            "wealth": self.wealth,
             "cash": self.cash,
             "holdings": self.holdings,
             "tendency": self.tendency_val,

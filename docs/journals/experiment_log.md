@@ -149,3 +149,103 @@ Only `tendency()` needed overriding for MomentumTrader agents.
 ### Insight
 
 Separating market mechanics from behavioral interpretation created a clean extensible simulation structure.
+
+
+
+
+
+----
+Phase 2 : 
+
+Experimental Results - Phase 2
+Experiment A
+
+Risk Tolerance Sweep
+
+30 simulations per risk level.
+
+Risk Levels:
+
+0.2
+0.4
+0.6
+0.8
+
+Initial Hypothesis
+
+Higher risk tolerance should increase volatility.
+
+Result
+
+Opposite outcome observed.
+
+Higher risk tolerance produced:
+
+Higher trading volume
+Lower volatility
+Additional Investigations
+
+Measured:
+
+Synchronization
+Conviction
+Volume
+Imbalance
+Findings
+
+Synchronization increased with risk.
+
+Conviction increased with risk.
+
+Trading volume increased strongly with risk.
+
+However:
+
+Higher volume corresponded to lower average absolute returns.
+
+Liquidity Effect
+
+Observed relationship:
+
+Higher Risk
+→ Higher Participation
+→ Higher Volume
+→ Smaller Imbalances
+→ Lower Volatility
+
+Conclusion
+
+Within the current market ecology:
+
+Risk tolerance behaves more like a liquidity parameter than a volatility parameter.
+
+Experiment B
+
+Normal vs Momentum Populations
+
+Configurations:
+
+100 Normal
+50 Normal / 50 Momentum
+100 Momentum
+Observation
+
+Pure momentum populations frequently underperformed mixed populations.
+
+Repeated pattern:
+
+Early upward movement followed by prolonged decay.
+
+Possible Explanation
+
+Momentum agents amplify existing trends.
+
+Combined with fear asymmetry:
+
+Negative moves become self-reinforcing.
+
+Interesting Observation
+
+Mixed populations often produced the most stable outcomes.
+
+Potential indication that behavioral diversity improves market stability.
